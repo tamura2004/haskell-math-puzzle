@@ -1,7 +1,7 @@
 module Lib where
 
-import System.Random
 import Data.List
+import Control.Monad
 
 type Edge = (Int, Int)
 type EdgeList = [Edge]
@@ -9,7 +9,9 @@ type EdgeSet = [EdgeList]
 type Node = [Int]
 
 someFunc :: IO ()
-someFunc = undefined
+someFunc = do
+    let ansers = search [board 15]
+    forM_ ansers print
 
 edge :: Int -> Int -> Edge
 edge width head = (head, head + width + 1)
@@ -32,16 +34,38 @@ data Board = Board Int Node EdgeSet deriving Show
 board :: Int -> Board
 board n = Board n (node n) (edgeSet n)
 
-candidate :: EdgeSet -> Edge -> EdgeSet
-candidate set edge = flip map set $ \list ->
+erase :: EdgeSet -> Edge -> EdgeSet
+erase set edge = flip map set $ \list ->
     flip filter list $ \other ->
         (fst edge) /= (fst other) &&
         (fst edge) /= (snd other) &&
         (snd edge) /= (snd other) &&
         (snd edge) /= (fst other)
 
-set :: Node -> Int -> Edge -> Node
-set node num edge = flip map (zip node [1..]) $ \t ->
+setNode :: Node -> Int -> Edge -> Node
+setNode node num edge = flip map (zip node [1..]) $ \t ->
     if snd t == fst edge || snd t == snd edge
         then num
         else fst t
+
+search :: [Board] -> [Node]
+search [] = []
+search (b:bs) = case b of
+    Board 0 node _    -> node : search bs
+    Board n node list ->
+        search (candidate b) ++ search bs
+
+candidate :: Board -> [Board]
+candidate (Board n node set) =
+    flip map (set !! (n-1)) $ \edge ->
+    let
+        set' = erase set edge
+        node' = setNode node n edge
+    in
+        Board (n-1) node' set'
+
+
+
+
+
+
