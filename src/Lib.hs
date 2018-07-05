@@ -2,6 +2,7 @@ module Lib where
 
 import Data.List
 import Control.Monad
+import System.Environment
 
 type Edge = (Int, Int)
 type EdgeList = [Edge]
@@ -10,7 +11,9 @@ type Node = [Int]
 
 someFunc :: IO ()
 someFunc = do
-    let ansers = search [board 15]
+    args <- getArgs
+    let n = case args of (x:xs) -> read x :: Int
+    let ansers = search [board n]
     forM_ ansers print
 
 edge :: Int -> Int -> Edge
